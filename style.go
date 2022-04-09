@@ -1,10 +1,7 @@
 package boa
 
 import (
-	"os"
-
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/term"
 )
 
 const (
@@ -17,9 +14,7 @@ const (
 )
 
 var (
-	// TODO func to calc width
-	physicalWidth, _, _ = term.GetSize(int(os.Stdout.Fd()))
-	width               = physicalWidth / 3
+	width = 100
 
 	titleStyle = lipgloss.NewStyle().Bold(true).
 			Border(lipgloss.DoubleBorder()).
@@ -31,6 +26,7 @@ var (
 			Foreground(lipgloss.AdaptiveColor{Light: darkTeal, Dark: lightTeal}).
 			Underline(true).
 			BorderBottom(true).
+			Margin(0, 0, 1, 0).
 			Padding(0, 1, 0, 1).Align(lipgloss.Center)
 
 	textStyle = lipgloss.NewStyle().Bold(true).Padding(0, 0, 0, 5).
@@ -38,4 +34,8 @@ var (
 
 	subTextStyle = lipgloss.NewStyle().Bold(true).Padding(0, 0, 0, 2).
 			Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
+
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.AdaptiveColor{Light: purple, Dark: purple}).
+				Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white})
+	itemStyle = lipgloss.NewStyle().PaddingLeft(2).Bold(true).Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white})
 )
