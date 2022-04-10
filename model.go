@@ -10,22 +10,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// cmdModel Implements tea.Model. It provides an interactive
+// help and usage tui component for bubbletea programs.
 type cmdModel struct {
 	list    list.Model
 	cmd     *cobra.Command
 	subCmds []list.Item
 }
 
+// newCmdModel initializes a based on values supplied from cmd *cobra.Command
 func newCmdModel(cmd *cobra.Command) *cmdModel {
 	subCmds := getSubCommands(cmd)
-	l := newList(subCmds)
+	l := newSubCmdsList(subCmds)
 	return &cmdModel{cmd: cmd, subCmds: subCmds, list: l}
 }
 
+// Init is the inital cmd to be executed which is nil for this component.
 func (m cmdModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update is called when a message is received.
 func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -37,16 +42,18 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if ok {
 				m.cmd = i.cmd
 				subCmds := getSubCommands(i.cmd)
-				m.list = newList(subCmds)
+				m.list = newSubCmdsList(subCmds)
 			}
 			return m, nil
 		}
 	}
+	// default behavior is to return our list model
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
 }
 
+// View renders the program's UI, which is just a string.
 func (m cmdModel) View() string {
 	usageText := strings.Builder{}
 
