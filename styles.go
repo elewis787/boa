@@ -14,28 +14,28 @@ const (
 )
 
 var (
-	width = 100
+	Width = 100
 
-	titleStyle = lipgloss.NewStyle().Bold(true).
+	TitleStyle = lipgloss.NewStyle().Bold(true).
 			Border(lipgloss.DoubleBorder()).
 			BorderForeground(lipgloss.AdaptiveColor{Light: purple, Dark: purple}).
-			Padding(1, 1).
+			Width(Width - 4).
 			Align(lipgloss.Center)
 
-	sectionStyle = lipgloss.NewStyle().Bold(true).
+	SectionStyle = lipgloss.NewStyle().Bold(true).
 			Foreground(lipgloss.AdaptiveColor{Light: darkTeal, Dark: lightTeal}).
 			Underline(true).
 			BorderBottom(true).
-			Margin(0, 0, 1, 0).
+			Margin(1, 0, 1, 0).
 			Padding(0, 1, 0, 1).Align(lipgloss.Center)
 
-	textStyle = lipgloss.NewStyle().Bold(true).Padding(0, 0, 0, 5).
+	TextStyle = lipgloss.NewStyle().Bold(true).Padding(0, 0, 0, 5).
 			Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
 
-	subTextStyle = lipgloss.NewStyle().Bold(true).Padding(0, 0, 0, 2).
-			Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
-
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.AdaptiveColor{Light: purple, Dark: purple}).
+	SelectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.AdaptiveColor{Light: purple, Dark: purple}).
 				Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white})
-	itemStyle = lipgloss.NewStyle().PaddingLeft(2).Bold(true).Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white})
+	ItemStyle = lipgloss.NewStyle().PaddingLeft(2).Bold(true).Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white})
+
+	InfoStyle = lipgloss.NewStyle().Bold(true).Width(Width).Align(lipgloss.Center).
+			Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
 )
