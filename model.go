@@ -115,5 +115,5 @@ func (m cmdModel) View() string {
 		BorderForeground(lipgloss.AdaptiveColor{Light: darkTeal, Dark: lightTeal}).
 		Border(lipgloss.ThickBorder()).Render(usageText.String() + "\n")
 
-	return lipgloss.JoinVertical(lipgloss.Top, usageCard, InfoStyle.Render("Press q, ctrl+c or esc to close"), "\n\n")
+	return lipgloss.JoinVertical(lipgloss.Top, usageCard, InfoStyle.Render("↑/k up • ↓/j down • / to filter • enter to select • q, ctrl+c, esc to quit"), "\n\n")
 }

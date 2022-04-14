@@ -51,6 +51,7 @@ func newSubCmdsList(items []list.Item) list.Model {
 	l.Title = "Available Sub Commands:"
 	l.SetShowHelp(false)
 	l.SetShowStatusBar(false)
+	l.SetShowPagination(false)
 	return l
 }
 
