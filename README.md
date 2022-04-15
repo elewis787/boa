@@ -46,3 +46,9 @@ The key lines are:
 
 ## Used by 
 - [rkl](https://github.com/elewis787/rkl)
+
+## Future work 
+- Eval how styles are exported. Goal is to make it easy to customize the layout without needing to build a cmd parser form cobra 
+- Add back button 
+- Option to execute sub command 
+- Other ideas ? - Open a feature request or submit a PR ! 
