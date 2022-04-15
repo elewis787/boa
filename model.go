@@ -25,7 +25,7 @@ func newCmdModel(cmd *cobra.Command) *cmdModel {
 	return &cmdModel{cmd: cmd, subCmds: subCmds, list: l}
 }
 
-// Init is the inital cmd to be executed which is nil for this component.
+// Init is the initial cmd to be executed which is nil for this component.
 func (m cmdModel) Init() tea.Cmd {
 	return nil
 }
