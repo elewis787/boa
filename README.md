@@ -52,4 +52,5 @@ The key lines are:
 - Eval how styles are exported. Goal is to make it easy to customize the layout without needing to build a cmd parser for cobra 
 - Add back button 
 - Option to execute sub command 
+- Adjust help based on cmd context availability 
 - Other ideas ? - Open a feature request or submit a PR ! 
