@@ -1,4 +1,5 @@
 # Boa
+[![Go Reference](https://pkg.go.dev/badge/github.com/elewis787/boa#section-readme.svg)](https://pkg.go.dev/github.com/elewis787/boa#section-readme)
 
 Boa implements [Cobra's](https://github.com/spf13/cobra) help and usage functions to provided an interactive user experience. User's no longer need to spend time running multiple help commands to see how nested sub commands work!
 
