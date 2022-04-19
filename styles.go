@@ -14,14 +14,21 @@ const (
 )
 
 var (
-	// Width of the help/usage output. Defaults to 100
-	Width = 100
+	// default width of the help/usage output. To override supply a width to the style you want to increase
+	width = 100
+
+	// Style of the border
+	BorderStyle = lipgloss.NewStyle().
+			Padding(0, 1, 0, 1).
+			Width(width).
+			BorderForeground(lipgloss.AdaptiveColor{Light: darkTeal, Dark: lightTeal}).
+			Border(lipgloss.ThickBorder())
 
 	// Style of the title
 	TitleStyle = lipgloss.NewStyle().Bold(true).
 			Border(lipgloss.DoubleBorder()).
 			BorderForeground(lipgloss.AdaptiveColor{Light: purple, Dark: purple}).
-			Width(Width - 4).
+			Width(width - 4).
 			Align(lipgloss.Center)
 
 	// Style of the individual help sections (Exaple, Usage, Flags etc.. )
@@ -33,7 +40,7 @@ var (
 			Padding(0, 1, 0, 1).Align(lipgloss.Center)
 
 	// Style of the text output
-	TextStyle = lipgloss.NewStyle().Bold(true).Padding(0, 0, 0, 5).
+	TextStyle = lipgloss.NewStyle().Bold(true).Padding(0, 0, 0, 5).Align(lipgloss.Left).
 			Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
 
 	// Style of the selection list items
@@ -43,6 +50,6 @@ var (
 	// Style of the list items
 	ItemStyle = lipgloss.NewStyle().PaddingLeft(2).Bold(true).Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white})
 
-	InfoStyle = lipgloss.NewStyle().Bold(true).Width(Width).Align(lipgloss.Center).
+	InfoStyle = lipgloss.NewStyle().Bold(true).Width(width).Align(lipgloss.Center).
 			Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
 )

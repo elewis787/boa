@@ -7,6 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/indent"
+	"github.com/muesli/reflow/wordwrap"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +24,11 @@ type cmdModel struct {
 func newCmdModel(cmd *cobra.Command) *cmdModel {
 	subCmds := getSubCommands(cmd)
 	l := newSubCmdsList(subCmds)
-	return &cmdModel{cmd: cmd, subCmds: subCmds, list: l}
+	return &cmdModel{
+		cmd:     cmd,
+		subCmds: subCmds,
+		list:    l,
+	}
 }
 
 // Init is the initial cmd to be executed which is nil for this component.
@@ -89,13 +95,14 @@ func (m cmdModel) View() string {
 
 	if m.cmd.HasAvailableLocalFlags() {
 		localFlags := SectionStyle.Render("Flags:")
-		flagUsage := TextStyle.Render(strings.TrimFunc(m.cmd.LocalFlags().FlagUsages(), unicode.IsSpace))
+
+		flagUsage := TextStyle.Render(formatFlags(strings.TrimRightFunc(m.cmd.LocalFlags().FlagUsages(), unicode.IsSpace)))
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, localFlags, flagUsage) + "\n")
 	}
 
 	if m.cmd.HasAvailableInheritedFlags() {
 		globalFlags := SectionStyle.Render("Global Flags:")
-		flagUsage := TextStyle.Render(strings.TrimFunc(m.cmd.InheritedFlags().FlagUsages(), unicode.IsSpace))
+		flagUsage := TextStyle.Render(formatFlags(strings.TrimRightFunc(m.cmd.InheritedFlags().FlagUsages(), unicode.IsSpace)))
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, globalFlags, flagUsage) + "\n")
 	}
 
@@ -109,11 +116,24 @@ func (m cmdModel) View() string {
 		usageText.WriteString(m.list.View() + "\n")
 	}
 
-	usageCard := lipgloss.NewStyle().
-		Padding(0, 1, 0, 1).
-		Width(Width).
-		BorderForeground(lipgloss.AdaptiveColor{Light: darkTeal, Dark: lightTeal}).
-		Border(lipgloss.ThickBorder()).Render(usageText.String() + "\n")
-
+	usageCard := BorderStyle.Render(usageText.String() + "\n")
 	return lipgloss.JoinVertical(lipgloss.Top, usageCard, InfoStyle.Render("↑/k up • ↓/j down • / to filter • enter to select • q, ctrl+c, esc to quit"), "\n\n")
+}
+
+func formatFlags(flagText string) string {
+	text := ""
+	for _, line := range strings.Split(strings.TrimRight(flagText, "\n"), "\n") {
+		if len(line) > width {
+			tmp := wordwrap.String(line, width) + "\n"
+			for i, v := range strings.Split(strings.TrimRight(tmp, "\n"), "\n") {
+				if i > 0 {
+					v = indent.String(v, 6)
+				}
+				text += v + "\n"
+			}
+		} else {
+			text += line + "\n"
+		}
+	}
+	return text
 }
