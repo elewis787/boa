@@ -1,7 +1,7 @@
 # Boa
-[![Go Reference](https://pkg.go.dev/badge/github.com/elewis787/boa#section-readme.svg)](https://pkg.go.dev/github.com/elewis787/boa#section-readme)
+[![Go Reference](https://pkg.go.dev/badge/github.com/elewis787/boa#section-readme.svg)](https://pkg.go.dev/github.com/elewis787/boa#section-readme) [![Go Report Card](https://goreportcard.com/badge/github.com/elewis787/boa)](https://goreportcard.com/report/github.com/elewis787/boa)
 
-Boa implements [Cobra's](https://github.com/spf13/cobra) help and usage functions to provided an interactive user experience. User's no longer need to spend time running multiple help commands to see how nested sub commands work!
+Boa implements [Cobra's](https://github.com/spf13/cobra) help and usage functions to provided an interactive user experience by leveraging [Bubbletea](https://github.com/charmbracelet/bubbletea). User's no longer need to spend time running multiple help commands to see how nested sub commands work!
 
 ## Install 
 
@@ -52,4 +52,5 @@ The key lines are:
 - Eval how styles are exported. Goal is to make it easy to customize the layout without needing to build a cmd parser for cobra 
 - Add back button 
 - Option to execute sub command 
+- Adjust help based on cmd context availability 
 - Other ideas ? - Open a feature request or submit a PR ! 
