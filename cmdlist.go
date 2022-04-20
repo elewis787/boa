@@ -40,11 +40,12 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 			return SelectedItemStyle.Render("> " + s)
 		}
 	}
-	fmt.Fprintf(w, fn(str))
+	fmt.Fprint(w, fn(str))
 }
 
 // newSubCmdsList returns a new list.Model filled with the values in []list.Items
 func newSubCmdsList(items []list.Item) list.Model {
+
 	l := list.New(items, itemDelegate{}, 0, listHeight)
 	l.Styles.TitleBar.Padding(0, 0)
 	l.Styles.Title = SectionStyle

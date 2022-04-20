@@ -4,7 +4,9 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/reflow/indent"
@@ -15,15 +17,20 @@ import (
 // cmdModel Implements tea.Model. It provides an interactive
 // help and usage tui component for bubbletea programs.
 type cmdModel struct {
-	list    list.Model
-	cmd     *cobra.Command
-	subCmds []list.Item
+	list     list.Model
+	ready    bool
+	viewport viewport.Model
+	cmd      *cobra.Command
+	subCmds  []list.Item
+	cursor   int
 }
 
 // newCmdModel initializes a based on values supplied from cmd *cobra.Command
 func newCmdModel(cmd *cobra.Command) *cmdModel {
 	subCmds := getSubCommands(cmd)
 	l := newSubCmdsList(subCmds)
+	l.KeyMap.CursorDown = key.NewBinding(key.WithKeys("m"))
+	l.KeyMap.CursorUp = key.NewBinding(key.WithKeys("n"))
 	return &cmdModel{
 		cmd:     cmd,
 		subCmds: subCmds,
@@ -38,7 +45,23 @@ func (m cmdModel) Init() tea.Cmd {
 
 // Update is called when a message is received.
 func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+	var viewPortCmd, listCmd tea.Cmd
+
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		if !m.ready {
+			m.viewport = viewport.Model{
+				Width:  msg.Width,
+				Height: msg.Height - 2,
+			}
+			m.viewport.SetContent(m.p())
+			m.ready = true
+		} else {
+			m.viewport.Width = msg.Width
+			m.viewport.Height = msg.Height - 2
+		}
+		return m, nil
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "q", "ctrl+c", "esc":
@@ -49,18 +72,25 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cmd = i.cmd
 				subCmds := getSubCommands(i.cmd)
 				m.list = newSubCmdsList(subCmds)
+				m.viewport.SetContent(m.p())
 			}
 			return m, nil
 		}
 	}
-	// default behavior is to return our list model
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-	return m, cmd
+	m.list, listCmd = m.list.Update(msg)
+	m.viewport, viewPortCmd = m.viewport.Update(msg)
+	cmds = append(cmds, listCmd, viewPortCmd)
+	m.viewport.SetContent(m.p())
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m cmdModel) View() string {
+	return m.viewport.View()
 }
 
 // View renders the program's UI, which is just a string.
-func (m cmdModel) View() string {
+func (m cmdModel) p() string {
 	usageText := strings.Builder{}
 
 	cmdTitle := ""
@@ -70,11 +100,12 @@ func (m cmdModel) View() string {
 		cmdTitle = TitleStyle.Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white}).
 			Render(lipgloss.JoinVertical(lipgloss.Top, rootCmdName, rootCmdLong))
 	}
+	usageText.WriteString(cmdTitle + "\n")
 
 	cmdSection := SectionStyle.Render("Cmd Description:")
 	short := TextStyle.Render(m.cmd.Short)
 
-	usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, cmdTitle, cmdSection, short) + "\n")
+	usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, cmdSection, short) + "\n")
 
 	if m.cmd.Runnable() {
 		usage := SectionStyle.Render("Usage:")
@@ -95,14 +126,17 @@ func (m cmdModel) View() string {
 
 	if m.cmd.HasAvailableLocalFlags() {
 		localFlags := SectionStyle.Render("Flags:")
-
-		flagUsage := TextStyle.Render(formatFlags(strings.TrimRightFunc(m.cmd.LocalFlags().FlagUsages(), unicode.IsSpace)))
+		flagUsage := TextStyle.Render(strings.TrimRightFunc(m.cmd.LocalFlags().FlagUsages(), unicode.IsSpace))
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, localFlags, flagUsage) + "\n")
 	}
-
+	if m.cmd.HasAvailableLocalFlags() {
+		localFlags := SectionStyle.Render("Flags:")
+		flagUsage := TextStyle.Render(strings.TrimRightFunc(m.cmd.LocalFlags().FlagUsages(), unicode.IsSpace))
+		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, localFlags, flagUsage) + "\n")
+	}
 	if m.cmd.HasAvailableInheritedFlags() {
 		globalFlags := SectionStyle.Render("Global Flags:")
-		flagUsage := TextStyle.Render(formatFlags(strings.TrimRightFunc(m.cmd.InheritedFlags().FlagUsages(), unicode.IsSpace)))
+		flagUsage := TextStyle.Render(strings.TrimRightFunc(m.cmd.InheritedFlags().FlagUsages(), unicode.IsSpace))
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, globalFlags, flagUsage) + "\n")
 	}
 
@@ -113,7 +147,7 @@ func (m cmdModel) View() string {
 	}
 
 	if m.cmd.HasAvailableSubCommands() {
-		usageText.WriteString(m.list.View() + "\n")
+		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, m.list.View()))
 	}
 
 	usageCard := BorderStyle.Render(usageText.String() + "\n")
