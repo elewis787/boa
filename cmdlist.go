@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -53,8 +54,8 @@ func newSubCmdsList(items []list.Item) list.Model {
 	l.SetShowHelp(false)
 	l.SetShowStatusBar(false)
 	l.SetShowPagination(false)
-	//l.KeyMap.CursorDown = key.NewBinding(key.WithKeys("m"))
-	//l.KeyMap.CursorUp = key.NewBinding(key.WithKeys("n"))
+	l.KeyMap.CursorDown = key.NewBinding(key.WithKeys("m"))
+	l.KeyMap.CursorUp = key.NewBinding(key.WithKeys("n"))
 	return l
 }
 
