@@ -18,7 +18,10 @@ type cmdModel struct {
 	viewport *viewport.Model
 	cmd      *cobra.Command
 	subCmds  []list.Item
-	cursor   int
+	// Store window height to adjust viewport on command selection changes
+	windowHeight int
+	// Store full height of content for given view, updated on command change
+	contentHeight int
 }
 
 // newCmdModel initializes a based on values supplied from cmd *cobra.Command
@@ -26,10 +29,11 @@ func newCmdModel(cmd *cobra.Command) *cmdModel {
 	subCmds := getSubCommands(cmd)
 	l := newSubCmdsList(subCmds)
 	return &cmdModel{
-		cmd:      cmd,
-		subCmds:  subCmds,
-		list:     l,
-		viewport: &viewport.Model{},
+		cmd:           cmd,
+		subCmds:       subCmds,
+		list:          l,
+		viewport:      &viewport.Model{},
+		contentHeight: lipgloss.Height(usage(cmd, l)),
 	}
 }
 
@@ -45,10 +49,11 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		m.windowHeight = msg.Height
 		m.viewport.Width = msg.Width
-		m.viewport.Height = msg.Height - lipgloss.Height(m.footer())
-		if m.viewport.Height > (lipgloss.Height(m.usage()))+lipgloss.Height(m.footer()) {
-			m.viewport.Height = lipgloss.Height(m.usage())
+		m.viewport.Height = m.windowHeight - lipgloss.Height(footer(m.contentHeight, m.windowHeight))
+		if m.viewport.Height > m.contentHeight+lipgloss.Height(footer(m.contentHeight, m.windowHeight)) {
+			m.viewport.Height = m.contentHeight
 		}
 		return m, nil
 	case tea.KeyMsg:
@@ -61,7 +66,14 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cmd = i.cmd
 				subCmds := getSubCommands(m.cmd)
 				m.list = newSubCmdsList(subCmds)
-				m.viewport.Height = lipgloss.Height(m.usage())
+				m.viewport.Height = m.windowHeight - lipgloss.Height(footer(m.contentHeight, m.windowHeight))
+				// Update new content height and check viewport size
+				m.contentHeight = lipgloss.Height(usage(m.cmd, m.list))
+				if m.viewport.Height > m.contentHeight+lipgloss.Height(footer(m.contentHeight, m.windowHeight)) {
+					m.viewport.Height = m.contentHeight
+				}
+				// Scroll viewport back to top for new screen
+				m.viewport.SetYOffset(0)
 			}
 			return m, nil
 		case "backspace":
@@ -69,7 +81,14 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cmd = m.cmd.Parent()
 				subCmds := getSubCommands(m.cmd)
 				m.list = newSubCmdsList(subCmds)
-				m.viewport.Height = lipgloss.Height(m.usage())
+				m.viewport.Height = m.windowHeight - lipgloss.Height(footer(m.contentHeight, m.windowHeight))
+				// Update new content height and check viewport size
+				m.contentHeight = lipgloss.Height(usage(m.cmd, m.list))
+				if m.viewport.Height > m.contentHeight+lipgloss.Height(footer(m.contentHeight, m.windowHeight)) {
+					m.viewport.Height = m.contentHeight
+				}
+				// Scroll viewport back to top for new screen
+				m.viewport.SetYOffset(0)
 			}
 			return m, nil
 		}
@@ -79,70 +98,65 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	newViewport, viewPortCmd := m.viewport.Update(msg)
 	// point to new viewport
 	m.viewport = &newViewport
-	if m.viewport.Height > (lipgloss.Height(m.usage()))+lipgloss.Height(m.footer()) {
-		m.viewport.Height = lipgloss.Height(m.usage())
+	if m.viewport.Height > m.contentHeight+lipgloss.Height(footer(m.contentHeight, m.windowHeight)) {
+		m.viewport.Height = m.contentHeight
 	}
 	cmds = append(cmds, listCmd, viewPortCmd)
 	return m, tea.Batch(cmds...)
 }
 
-func (m cmdModel) usage() string {
+func usage(cmd *cobra.Command, list list.Model) string {
 	usageText := strings.Builder{}
 
 	cmdTitle := ""
-	if !m.cmd.HasParent() {
-		rootCmdName := SectionStyle.Render(m.cmd.Root().Name() + " " + m.cmd.Root().Version)
-		rootCmdLong := lipgloss.NewStyle().Align(lipgloss.Center).Render(m.cmd.Root().Long)
+	if !cmd.HasParent() {
+		rootCmdName := SectionStyle.Render(cmd.Root().Name() + " " + cmd.Root().Version)
+		rootCmdLong := SubTitleSytle.Render(cmd.Root().Long)
 		cmdTitle = TitleStyle.Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white}).
 			Render(lipgloss.JoinVertical(lipgloss.Top, rootCmdName, rootCmdLong))
 	}
 	usageText.WriteString(cmdTitle + "\n")
 
 	cmdSection := SectionStyle.Render("Cmd Description:")
-	short := TextStyle.Render(m.cmd.Short)
+	short := TextStyle.Render(cmd.Short)
 
 	usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, cmdSection, short) + "\n")
 
-	if m.cmd.Runnable() {
+	if cmd.Runnable() {
 		usage := SectionStyle.Render("Usage:")
-		useLine := TextStyle.Render(m.cmd.UseLine())
+		useLine := TextStyle.Render(cmd.UseLine())
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, usage, useLine) + "\n")
-		if m.cmd.HasAvailableSubCommands() {
-			commandPath := TextStyle.Render(m.cmd.CommandPath() + " [command]")
+		if cmd.HasAvailableSubCommands() {
+			commandPath := TextStyle.Render(cmd.CommandPath() + " [command]")
 			usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, commandPath) + "\n")
 		}
 	}
 
-	if len(m.cmd.Aliases) > 0 {
+	if len(cmd.Aliases) > 0 {
 		aliases := SectionStyle.Render("Aliases:")
-		nameAndAlias := TextStyle.Render(m.cmd.NameAndAliases())
+		nameAndAlias := TextStyle.Render(cmd.NameAndAliases())
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, aliases, nameAndAlias) + "\n")
 	}
 
-	if m.cmd.HasAvailableLocalFlags() {
+	if cmd.HasAvailableLocalFlags() {
 		localFlags := SectionStyle.Render("Flags:")
-		flagUsage := TextStyle.Render(strings.TrimRightFunc(m.cmd.LocalFlags().FlagUsages(), unicode.IsSpace))
+		flagUsage := TextStyle.Render(strings.TrimRightFunc(cmd.LocalFlags().FlagUsages(), unicode.IsSpace))
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, localFlags, flagUsage) + "\n")
 	}
-	if m.cmd.HasAvailableLocalFlags() {
-		localFlags := SectionStyle.Render("Flags:")
-		flagUsage := TextStyle.Render(strings.TrimRightFunc(m.cmd.LocalFlags().FlagUsages(), unicode.IsSpace))
-		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, localFlags, flagUsage) + "\n")
-	}
-	if m.cmd.HasAvailableInheritedFlags() {
+	if cmd.HasAvailableInheritedFlags() {
 		globalFlags := SectionStyle.Render("Global Flags:")
-		flagUsage := TextStyle.Render(strings.TrimRightFunc(m.cmd.InheritedFlags().FlagUsages(), unicode.IsSpace))
+		flagUsage := TextStyle.Render(strings.TrimRightFunc(cmd.InheritedFlags().FlagUsages(), unicode.IsSpace))
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, globalFlags, flagUsage) + "\n")
 	}
 
-	if m.cmd.HasExample() {
+	if cmd.HasExample() {
 		examples := SectionStyle.Render("Examples:")
-		example := TextStyle.Render(m.cmd.Example)
+		example := TextStyle.Render(cmd.Example)
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, examples, example) + "\n")
 	}
 
-	if m.cmd.HasAvailableSubCommands() {
-		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, m.list.View()))
+	if cmd.HasAvailableSubCommands() {
+		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, list.View()))
 	}
 
 	usageCard := BorderStyle.Render(usageText.String() + "\n")
@@ -151,11 +165,11 @@ func (m cmdModel) usage() string {
 
 // View renders the program's UI, which is just a string.
 func (m cmdModel) View() string {
-	m.viewport.SetContent(m.usage())
-	return lipgloss.JoinVertical(lipgloss.Top, m.viewport.View(), m.footer())
+	m.viewport.SetContent(usage(m.cmd, m.list))
+	return lipgloss.JoinVertical(lipgloss.Top, m.viewport.View(), footer(m.contentHeight, m.windowHeight))
 }
 
-func (m cmdModel) footer() string {
+func footer(contentHeight int, windowHeight int) string {
 	help := InfoStyle.Render("↑/k up • ↓/j down • / to filter • backspace to go back • enter to select • q, ctrl+c to quit")
 	scroll := InfoStyle.Render("use mouse scroll or space to see full usage")
 	return lipgloss.JoinVertical(lipgloss.Top, help, scroll)
