@@ -28,13 +28,13 @@ type cmdModel struct {
 func newCmdModel(cmd *cobra.Command) *cmdModel {
 	subCmds := getSubCommands(cmd)
 	l := newSubCmdsList(subCmds)
+	vp := viewport.New(0, 0)
+	vp.KeyMap = viewPortKeyMap()
 	return &cmdModel{
-		cmd:     cmd,
-		subCmds: subCmds,
-		list:    l,
-		viewport: &viewport.Model{
-			KeyMap: viewPortKeyMap(),
-		},
+		cmd:           cmd,
+		subCmds:       subCmds,
+		list:          l,
+		viewport:      &vp,
 		contentHeight: lipgloss.Height(usage(cmd, l)),
 	}
 }
