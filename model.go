@@ -120,7 +120,7 @@ func viewPortKeyMap() viewport.KeyMap {
 			key.WithKeys("pgdown", spacebar, "f"),
 		),
 		PageUp: key.NewBinding(
-			key.WithKeys("pgup", "b"),
+			key.WithKeys("pgup", "v"),
 		),
 		HalfPageUp: key.NewBinding(
 			key.WithKeys("u", "ctrl+u"),
