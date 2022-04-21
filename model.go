@@ -54,9 +54,11 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.windowHeight = msg.Height
 		m.viewport.Width = msg.Width
 		m.viewport.Height = m.windowHeight - lipgloss.Height(footer(m.contentHeight, m.windowHeight))
-		if m.viewport.Height > m.contentHeight+lipgloss.Height(footer(m.contentHeight, m.windowHeight)) {
+		if m.viewport.Height > m.contentHeight {
 			m.viewport.Height = m.contentHeight
 		}
+		// Scroll viewport back to top for new screen
+		m.viewport.SetYOffset(0)
 		return m, nil
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
@@ -71,7 +73,7 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewport.Height = m.windowHeight - lipgloss.Height(footer(m.contentHeight, m.windowHeight))
 				// Update new content height and check viewport size
 				m.contentHeight = lipgloss.Height(usage(m.cmd, m.list))
-				if m.viewport.Height > m.contentHeight+lipgloss.Height(footer(m.contentHeight, m.windowHeight)) {
+				if m.viewport.Height > m.contentHeight {
 					m.viewport.Height = m.contentHeight
 				}
 				// Scroll viewport back to top for new screen
@@ -86,7 +88,7 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewport.Height = m.windowHeight - lipgloss.Height(footer(m.contentHeight, m.windowHeight))
 				// Update new content height and check viewport size
 				m.contentHeight = lipgloss.Height(usage(m.cmd, m.list))
-				if m.viewport.Height > m.contentHeight+lipgloss.Height(footer(m.contentHeight, m.windowHeight)) {
+				if m.viewport.Height > m.contentHeight {
 					m.viewport.Height = m.contentHeight
 				}
 				// Scroll viewport back to top for new screen
@@ -101,7 +103,7 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// point to new viewport
 	m.viewport = &newViewport
 	m.viewport.KeyMap = viewPortKeyMap()
-	if m.viewport.Height > m.contentHeight+lipgloss.Height(footer(m.contentHeight, m.windowHeight)) {
+	if m.viewport.Height > m.contentHeight {
 		m.viewport.Height = m.contentHeight
 	}
 	cmds = append(cmds, listCmd, viewPortCmd)

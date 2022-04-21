@@ -121,7 +121,8 @@ func usage(cmd *cobra.Command, list list.Model) string {
 func footer(contentHeight int, windowHeight int) string {
 	var help, scroll string
 	help = InfoStyle.Render("↑/k up • ↓/j down • / to filter • b to go back • enter to select • q, ctrl+c to quit")
-	if contentHeight > windowHeight {
+	// If content is larger than the window minus the size of the necessary footer then it will be in a scrollable viewport
+	if contentHeight > windowHeight-2 {
 		scroll = InfoStyle.Render("ctrl+k up • ctrl+j down • mouse to scroll")
 	}
 	return lipgloss.JoinVertical(lipgloss.Top, help, scroll)
