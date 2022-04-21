@@ -16,7 +16,7 @@ const (
 var (
 	// default width of the help/usage output. To override supply a width to the style you want to increase
 	width  = 100
-	height = 150
+	height = 50
 	// Style of the border
 	BorderStyle = lipgloss.NewStyle().
 			Padding(0, 1, 0, 1).
@@ -30,6 +30,7 @@ var (
 			BorderForeground(lipgloss.AdaptiveColor{Light: purple, Dark: purple}).
 			Width(width - 4).
 			Align(lipgloss.Center)
+	SubTitleSytle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white}).Align(lipgloss.Center)
 
 	// Style of the individual help sections (Exaple, Usage, Flags etc.. )
 	SectionStyle = lipgloss.NewStyle().Bold(true).

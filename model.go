@@ -4,13 +4,10 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/reflow/indent"
-	"github.com/muesli/reflow/wordwrap"
 	"github.com/spf13/cobra"
 )
 
@@ -18,8 +15,7 @@ import (
 // help and usage tui component for bubbletea programs.
 type cmdModel struct {
 	list     list.Model
-	ready    bool
-	viewport viewport.Model
+	viewport *viewport.Model
 	cmd      *cobra.Command
 	subCmds  []list.Item
 	cursor   int
@@ -29,12 +25,11 @@ type cmdModel struct {
 func newCmdModel(cmd *cobra.Command) *cmdModel {
 	subCmds := getSubCommands(cmd)
 	l := newSubCmdsList(subCmds)
-	l.KeyMap.CursorDown = key.NewBinding(key.WithKeys("m"))
-	l.KeyMap.CursorUp = key.NewBinding(key.WithKeys("n"))
 	return &cmdModel{
-		cmd:     cmd,
-		subCmds: subCmds,
-		list:    l,
+		cmd:      cmd,
+		subCmds:  subCmds,
+		list:     l,
+		viewport: &viewport.Model{},
 	}
 }
 
@@ -46,51 +41,52 @@ func (m cmdModel) Init() tea.Cmd {
 // Update is called when a message is received.
 func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
-	var viewPortCmd, listCmd tea.Cmd
+	var listCmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		if !m.ready {
-			m.viewport = viewport.Model{
-				Width:  msg.Width,
-				Height: msg.Height - 2,
-			}
-			m.viewport.SetContent(m.p())
-			m.ready = true
-		} else {
-			m.viewport.Width = msg.Width
-			m.viewport.Height = msg.Height - 2
+		m.viewport.Width = msg.Width
+		m.viewport.Height = msg.Height - lipgloss.Height(m.footer())
+		if m.viewport.Height > (lipgloss.Height(m.usage()))+lipgloss.Height(m.footer()) {
+			m.viewport.Height = lipgloss.Height(m.usage())
 		}
 		return m, nil
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
-		case "q", "ctrl+c", "esc":
+		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
 			i, ok := m.list.SelectedItem().(item)
 			if ok {
 				m.cmd = i.cmd
-				subCmds := getSubCommands(i.cmd)
+				subCmds := getSubCommands(m.cmd)
 				m.list = newSubCmdsList(subCmds)
-				m.viewport.SetContent(m.p())
+				m.viewport.Height = lipgloss.Height(m.usage())
+			}
+			return m, nil
+		case "backspace":
+			if m.cmd.HasParent() {
+				m.cmd = m.cmd.Parent()
+				subCmds := getSubCommands(m.cmd)
+				m.list = newSubCmdsList(subCmds)
+				m.viewport.Height = lipgloss.Height(m.usage())
 			}
 			return m, nil
 		}
 	}
-	m.list, listCmd = m.list.Update(msg)
-	m.viewport, viewPortCmd = m.viewport.Update(msg)
-	cmds = append(cmds, listCmd, viewPortCmd)
-	m.viewport.SetContent(m.p())
 
+	m.list, listCmd = m.list.Update(msg)
+	newViewport, viewPortCmd := m.viewport.Update(msg)
+	// point to new viewport
+	m.viewport = &newViewport
+	if m.viewport.Height > (lipgloss.Height(m.usage()))+lipgloss.Height(m.footer()) {
+		m.viewport.Height = lipgloss.Height(m.usage())
+	}
+	cmds = append(cmds, listCmd, viewPortCmd)
 	return m, tea.Batch(cmds...)
 }
 
-func (m cmdModel) View() string {
-	return m.viewport.View()
-}
-
-// View renders the program's UI, which is just a string.
-func (m cmdModel) p() string {
+func (m cmdModel) usage() string {
 	usageText := strings.Builder{}
 
 	cmdTitle := ""
@@ -121,7 +117,6 @@ func (m cmdModel) p() string {
 		aliases := SectionStyle.Render("Aliases:")
 		nameAndAlias := TextStyle.Render(m.cmd.NameAndAliases())
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, aliases, nameAndAlias) + "\n")
-
 	}
 
 	if m.cmd.HasAvailableLocalFlags() {
@@ -151,23 +146,17 @@ func (m cmdModel) p() string {
 	}
 
 	usageCard := BorderStyle.Render(usageText.String() + "\n")
-	return lipgloss.JoinVertical(lipgloss.Top, usageCard, InfoStyle.Render("↑/k up • ↓/j down • / to filter • enter to select • q, ctrl+c, esc to quit"), "\n\n")
+	return usageCard
 }
 
-func formatFlags(flagText string) string {
-	text := ""
-	for _, line := range strings.Split(strings.TrimRight(flagText, "\n"), "\n") {
-		if len(line) > width {
-			tmp := wordwrap.String(line, width) + "\n"
-			for i, v := range strings.Split(strings.TrimRight(tmp, "\n"), "\n") {
-				if i > 0 {
-					v = indent.String(v, 6)
-				}
-				text += v + "\n"
-			}
-		} else {
-			text += line + "\n"
-		}
-	}
-	return text
+// View renders the program's UI, which is just a string.
+func (m cmdModel) View() string {
+	m.viewport.SetContent(m.usage())
+	return lipgloss.JoinVertical(lipgloss.Top, m.viewport.View(), m.footer())
+}
+
+func (m cmdModel) footer() string {
+	help := InfoStyle.Render("↑/k up • ↓/j down • / to filter • backspace to go back • enter to select • q, ctrl+c to quit")
+	scroll := InfoStyle.Render("use mouse scroll or space to see full usage")
+	return lipgloss.JoinVertical(lipgloss.Top, help, scroll)
 }

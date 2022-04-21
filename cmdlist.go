@@ -53,6 +53,8 @@ func newSubCmdsList(items []list.Item) list.Model {
 	l.SetShowHelp(false)
 	l.SetShowStatusBar(false)
 	l.SetShowPagination(false)
+	//l.KeyMap.CursorDown = key.NewBinding(key.WithKeys("m"))
+	//l.KeyMap.CursorUp = key.NewBinding(key.WithKeys("n"))
 	return l
 }
 
