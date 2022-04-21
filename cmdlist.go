@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -46,7 +45,6 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 // newSubCmdsList returns a new list.Model filled with the values in []list.Items
 func newSubCmdsList(items []list.Item) list.Model {
-
 	l := list.New(items, itemDelegate{}, 0, listHeight)
 	l.Styles.TitleBar.Padding(0, 0)
 	l.Styles.Title = SectionStyle
@@ -54,8 +52,6 @@ func newSubCmdsList(items []list.Item) list.Model {
 	l.SetShowHelp(false)
 	l.SetShowStatusBar(false)
 	l.SetShowPagination(false)
-	l.KeyMap.CursorDown = key.NewBinding(key.WithKeys("m"))
-	l.KeyMap.CursorUp = key.NewBinding(key.WithKeys("n"))
 	return l
 }
 
