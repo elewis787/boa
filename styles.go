@@ -20,8 +20,7 @@ const (
 
 var (
 	// default width of the help/usage output. To override supply a width to the style you want to increase
-	width  = 100
-	height = 50
+	width = 100
 	// Style of the border
 	BorderStyle = lipgloss.NewStyle().
 			Padding(0, 1, 0, 1).

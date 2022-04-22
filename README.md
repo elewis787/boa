@@ -41,12 +41,22 @@ The key lines are:
 	rootCmd.SetHelpFunc(boa.HelpFunc)
 ```
 
+To futher customize the look and feel of boa, you can optional set additional styles 
+
+```go 
+	boa.TitleStyle.BorderForeground(lipgloss.AdaptiveColor{Light: `#E3BD2D`, Dark: `#E3BD2D`})
+	boa.BorderStyle.BorderForeground(lipgloss.AdaptiveColor{Light: `#E3BD2D`, Dark: `#E3BD2D`})
+```
+
+Use the documentation to see a full list of styles that can be set. 
+
 ## Demo 
 
 ![demo](demo.gif)
 
 ## Used by 
 - [rkl](https://github.com/elewis787/rkl)
+- [m8](https://github.com/kochavalabs/m8)
 
 ## Future work 
 - Eval how styles are exported. Goal is to make it easy to customize the layout without needing to build a cmd parser for cobra 
