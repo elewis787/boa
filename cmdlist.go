@@ -40,7 +40,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 			return SelectedItemStyle.Render("> " + s)
 		}
 	}
-	fmt.Fprintf(w, fn(str))
+	fmt.Fprint(w, fn(str))
 }
 
 // newSubCmdsList returns a new list.Model filled with the values in []list.Items
