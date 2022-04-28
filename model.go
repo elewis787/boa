@@ -18,6 +18,7 @@ type cmdModel struct {
 	viewport *viewport.Model
 	cmd      *cobra.Command
 	subCmds  []list.Item
+	print    bool
 	// Store window height to adjust viewport on command selection changes
 	windowHeight int
 	// Store full height of content for given view, updated on command change
@@ -95,6 +96,9 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewport.SetYOffset(0)
 			}
 			return m, nil
+		case "p":
+			m.print = true
+			return m, nil
 		}
 	}
 
@@ -112,6 +116,11 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the program's UI, which is just a string.
 func (m cmdModel) View() string {
+	if m.print {
+		printCmd := InfoStyle.Render("Copy: " + print("", m.cmd) + "\n")
+		m.viewport.SetContent(printCmd)
+		return m.viewport.View()
+	}
 	m.viewport.SetContent(usage(m.cmd, m.list))
 	return lipgloss.JoinVertical(lipgloss.Top, m.viewport.View(), footer(m.contentHeight, m.windowHeight))
 }
