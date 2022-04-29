@@ -12,7 +12,7 @@ import (
 // Set by calling Cobra's SetHelpFunc
 func HelpFunc(cmd *cobra.Command, s []string) {
 	model := newCmdModel(cmd)
-	if err := tea.NewProgram(model, tea.WithAltScreen(), tea.WithMouseCellMotion()).Start(); err != nil {
+	if err := tea.NewProgram(model, opts.atlScreen, tea.WithMouseCellMotion()).Start(); err != nil {
 		log.Fatal(err)
 	}
 	if model.print {
@@ -24,7 +24,7 @@ func HelpFunc(cmd *cobra.Command, s []string) {
 // Set by calling Cobra's SetUsageFunc
 func UsageFunc(cmd *cobra.Command) error {
 	model := newCmdModel(cmd)
-	if err := tea.NewProgram(model, tea.WithAltScreen(), tea.WithMouseCellMotion()).Start(); err != nil {
+	if err := tea.NewProgram(model, opts.atlScreen, tea.WithMouseCellMotion()).Start(); err != nil {
 		return err
 	}
 	if model.print {
