@@ -57,16 +57,26 @@ var (
 
 	InfoStyle = lipgloss.NewStyle().Bold(true).Width(width).Align(lipgloss.Center).
 			Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
+
+	PrintStyle = lipgloss.NewStyle().Bold(true).Width(width).Margin(1).Align(lipgloss.Center).
+			Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
 )
 
+// print outputs the command chain for a given cobra command.
 func print(v string, cmd *cobra.Command) string {
-	if !cmd.HasParent() {
-		return cmd.Name() + " " + v
+	if cmd != nil {
+		v = cmd.Name() + " " + v
+		if !cmd.HasParent() {
+			// final result
+			return BorderStyle.Render(PrintStyle.Render("Command: " + v))
+		}
+		// recursively walk cmd chain
+		return print(v, cmd.Parent())
 	}
-	v = cmd.Name() + " " + v
-	return print(v, cmd.Parent())
+	return v
 }
 
+// usage builds the usage body from a cobra command
 func usage(cmd *cobra.Command, list list.Model) string {
 	usageText := strings.Builder{}
 
@@ -125,6 +135,7 @@ func usage(cmd *cobra.Command, list list.Model) string {
 	return usageCard
 }
 
+// footer outputs the footer of the viewport and contains help text.
 func footer(contentHeight int, windowHeight int) string {
 	var help, scroll string
 	help = InfoStyle.Render("↑/k up • ↓/j down • / to filter • p to print • b to go back • enter to select • q, ctrl+c to quit")

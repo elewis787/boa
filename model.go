@@ -19,6 +19,7 @@ type cmdModel struct {
 	cmd      *cobra.Command
 	subCmds  []list.Item
 	print    bool
+	cmdChain string
 	// Store window height to adjust viewport on command selection changes
 	windowHeight int
 	// Store full height of content for given view, updated on command change
@@ -41,12 +42,12 @@ func newCmdModel(cmd *cobra.Command) *cmdModel {
 }
 
 // Init is the initial cmd to be executed which is nil for this component.
-func (m cmdModel) Init() tea.Cmd {
+func (m *cmdModel) Init() tea.Cmd {
 	return nil
 }
 
 // Update is called when a message is received.
-func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var listCmd tea.Cmd
 
@@ -98,7 +99,8 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case "p":
 			m.print = true
-			return m, nil
+			m.cmdChain = print("", m.cmd)
+			return m, tea.Quit
 		}
 	}
 
@@ -115,12 +117,7 @@ func (m cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View renders the program's UI, which is just a string.
-func (m cmdModel) View() string {
-	if m.print {
-		printCmd := InfoStyle.Render("Copy: " + print("", m.cmd) + "\n")
-		m.viewport.SetContent(printCmd)
-		return m.viewport.View()
-	}
+func (m *cmdModel) View() string {
 	m.viewport.SetContent(usage(m.cmd, m.list))
 	return lipgloss.JoinVertical(lipgloss.Top, m.viewport.View(), footer(m.contentHeight, m.windowHeight))
 }
