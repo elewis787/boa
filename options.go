@@ -3,7 +3,13 @@ package boa
 import tea "github.com/charmbracelet/bubbletea"
 
 type options struct {
-	atlScreen tea.ProgramOption
+	// public
+	atlScreen  tea.ProgramOption
+	width      int
+	showBorder bool
+
+	// private (not capable of being set)
+	mouseCellMotion tea.ProgramOption
 }
 
 type Options interface {
@@ -22,6 +28,18 @@ func newFuncOption(f func(*options)) *funcOption {
 	return &funcOption{f: f}
 }
 
+func WithBorder(b bool) Options {
+	return newFuncOption(func(opt *options) {
+		opt.showBorder = b
+	})
+}
+
+func WithWidth(w int) Options {
+	return newFuncOption(func(opt *options) {
+		opt.width = w
+	})
+}
+
 func WithAltScreen(b bool) Options {
 	return newFuncOption(func(opt *options) {
 		if !b {
@@ -33,20 +51,11 @@ func WithAltScreen(b bool) Options {
 
 func defaultOptions() *options {
 	return &options{
-		atlScreen: noOpt,
+		width:           defaultWidth,
+		atlScreen:       noOpt,
+		showBorder:      true,
+		mouseCellMotion: tea.WithMouseCellMotion(),
 	}
 }
 
 func noOpt(*tea.Program) {}
-
-// Inital options
-var opts = defaultOptions()
-
-// New uses sets the package level options variables.
-// Eventually this will likely return a new struct and
-// the options will belong to that struct
-func New(options ...Options) {
-	for _, opt := range options {
-		opt.apply(opts)
-	}
-}
