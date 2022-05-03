@@ -5,8 +5,7 @@ import (
 )
 
 const (
-	defaultWidth  = 100
-	defaultHeight = 150
+	defaultWidth = 100
 
 	//default colors
 	purple    = `#7e2fcc`

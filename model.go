@@ -39,15 +39,16 @@ func newCmdModel(options *options, styles *Styles, cmd *cobra.Command) *cmdModel
 	l := newSubCmdsList(styles, subCmds)
 	vp := viewport.New(0, 0)
 	vp.KeyMap = viewPortKeyMap()
-	return &cmdModel{
-		options:       options,
-		styles:        styles,
-		cmd:           cmd,
-		subCmds:       subCmds,
-		list:          l,
-		viewport:      &vp,
-		contentHeight: defaultHeight,
+	m := &cmdModel{
+		options:  options,
+		styles:   styles,
+		cmd:      cmd,
+		subCmds:  subCmds,
+		list:     l,
+		viewport: &vp,
 	}
+	m.contentHeight = lipgloss.Height(m.usage())
+	return m
 }
 
 // Init is the initial cmd to be executed which is nil for this component.
