@@ -13,7 +13,6 @@ const (
 	lightTeal = `#03DAC5`
 	darkTeal  = `#01A299`
 	white     = `#e5e5e5`
-	red       = `#F45353`
 )
 
 type Styles struct {
@@ -28,13 +27,13 @@ type Styles struct {
 	CmdPrint     lipgloss.Style
 }
 
-func defaultStyles(width int) *Styles {
+func DefaultStyles() *Styles {
 	s := &Styles{}
 
 	// Style of the border
 	s.Border = lipgloss.NewStyle().
 		Padding(0, 1, 0, 1).
-		Width(width).
+		Width(defaultWidth).
 		BorderForeground(lipgloss.AdaptiveColor{Light: darkTeal, Dark: lightTeal}).
 		Border(lipgloss.ThickBorder())
 
@@ -42,7 +41,7 @@ func defaultStyles(width int) *Styles {
 	s.Title = lipgloss.NewStyle().Bold(true).
 		Border(lipgloss.DoubleBorder()).
 		BorderForeground(lipgloss.AdaptiveColor{Light: purple, Dark: purple}).
-		Width(width - 4).
+		Width(defaultWidth - 4).
 		Align(lipgloss.Center)
 
 	// Style of the SubTitle
@@ -68,11 +67,11 @@ func defaultStyles(width int) *Styles {
 	s.Item = lipgloss.NewStyle().PaddingLeft(2).Bold(true).Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white})
 
 	// Style of the info text
-	s.Info = lipgloss.NewStyle().Bold(true).Width(width).Align(lipgloss.Center).
+	s.Info = lipgloss.NewStyle().Bold(true).Width(defaultWidth).Align(lipgloss.Center).
 		Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
 
 	// Style of the Cmd Print text
-	s.CmdPrint = lipgloss.NewStyle().Bold(true).Width(width).Margin(1).Align(lipgloss.Center).
+	s.CmdPrint = lipgloss.NewStyle().Bold(true).Width(defaultWidth).Margin(1).Align(lipgloss.Center).
 		Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
 
 	return s

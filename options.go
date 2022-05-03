@@ -1,13 +1,13 @@
 package boa
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 type options struct {
 	// public
-	altScreen  tea.ProgramOption
-	width      int
-	showBorder bool
-
+	altScreen tea.ProgramOption
+	styles    *Styles
 	// private (not capable of being set)
 	mouseCellMotion tea.ProgramOption
 }
@@ -28,18 +28,6 @@ func newFuncOption(f func(*options)) *funcOption {
 	return &funcOption{f: f}
 }
 
-func WithBorder(b bool) Options {
-	return newFuncOption(func(opt *options) {
-		opt.showBorder = b
-	})
-}
-
-func WithWidth(w int) Options {
-	return newFuncOption(func(opt *options) {
-		opt.width = w
-	})
-}
-
 func WithAltScreen(b bool) Options {
 	return newFuncOption(func(opt *options) {
 		if !b {
@@ -50,11 +38,18 @@ func WithAltScreen(b bool) Options {
 	})
 }
 
+func WithStyles(styles *Styles) Options {
+	return newFuncOption(func(opt *options) {
+		if styles != nil {
+			opt.styles = styles
+		}
+	})
+}
+
 func defaultOptions() *options {
 	return &options{
-		width:           defaultWidth,
 		altScreen:       noOpt,
-		showBorder:      true,
+		styles:          DefaultStyles(),
 		mouseCellMotion: tea.WithMouseCellMotion(),
 	}
 }

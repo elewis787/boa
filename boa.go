@@ -10,7 +10,6 @@ import (
 
 type Boa struct {
 	options *options
-	Styles  *Styles
 }
 
 // Create a new instance of Boa with custom Options
@@ -20,28 +19,27 @@ func New(options ...Options) *Boa {
 		opt.apply(opts)
 	}
 	return &Boa{
-		Styles:  defaultStyles(opts.width),
 		options: opts,
 	}
 }
 
 func (b *Boa) HelpFunc(cmd *cobra.Command, s []string) {
-	model := newCmdModel(b.options, b.Styles, cmd)
+	model := newCmdModel(b.options, cmd)
 	if err := tea.NewProgram(model, b.options.altScreen, b.options.mouseCellMotion).Start(); err != nil {
 		log.Fatal(err)
 	}
 	if model.print {
-		fmt.Println(model.cmdChain)
+		fmt.Println(b.options.styles.Border.Render(b.options.styles.CmdPrint.Render(model.cmdChain)))
 	}
 }
 
 func (b *Boa) UsageFunc(cmd *cobra.Command) error {
-	model := newCmdModel(b.options, b.Styles, cmd)
+	model := newCmdModel(b.options, cmd)
 	if err := tea.NewProgram(model, b.options.altScreen, b.options.mouseCellMotion).Start(); err != nil {
 		return err
 	}
 	if model.print {
-		fmt.Println(model.cmdChain)
+		fmt.Println(b.options.styles.Border.Render(b.options.styles.CmdPrint.Render(model.cmdChain)))
 	}
 	return nil
 }

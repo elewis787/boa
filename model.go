@@ -19,7 +19,6 @@ const (
 // cmdModel Implements tea.Model. It provides an interactive
 // help and usage tui component for bubbletea programs.
 type cmdModel struct {
-	options  *options
 	styles   *Styles
 	list     list.Model
 	viewport *viewport.Model
@@ -34,14 +33,13 @@ type cmdModel struct {
 }
 
 // newCmdModel initializes a based on values supplied from cmd *cobra.Command
-func newCmdModel(options *options, styles *Styles, cmd *cobra.Command) *cmdModel {
+func newCmdModel(options *options, cmd *cobra.Command) *cmdModel {
 	subCmds := getSubCommands(cmd)
-	l := newSubCmdsList(styles, subCmds)
+	l := newSubCmdsList(options.styles, subCmds)
 	vp := viewport.New(0, 0)
 	vp.KeyMap = viewPortKeyMap()
 	m := &cmdModel{
-		options:  options,
-		styles:   styles,
+		styles:   options.styles,
 		cmd:      cmd,
 		subCmds:  subCmds,
 		list:     l,
@@ -128,9 +126,6 @@ func (m *cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the program's UI, which is just a string.
 func (m *cmdModel) View() string {
-	if m.print {
-		return m.styles.Border.Render(m.styles.CmdPrint.Render(m.cmdChain))
-	}
 	m.viewport.SetContent(m.usage())
 	return lipgloss.JoinVertical(lipgloss.Top, m.viewport.View(), m.footer())
 }
@@ -190,9 +185,6 @@ func (m *cmdModel) usage() string {
 		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, m.list.View()))
 	}
 
-	if !m.options.showBorder {
-		return usageText.String() + "\n"
-	}
 	return m.styles.Border.Render(usageText.String() + "\n")
 }
 
