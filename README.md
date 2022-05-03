@@ -41,14 +41,22 @@ The key lines are:
 	rootCmd.SetHelpFunc(boa.HelpFunc)
 ```
 
-To futher customize the look and feel of boa, you can optional set additional styles 
+To futher customize the look and feel of boa, you can optional set additional styles or extend the defaults  
 
 ```go 
-	boa.TitleStyle.BorderForeground(lipgloss.AdaptiveColor{Light: `#E3BD2D`, Dark: `#E3BD2D`})
-	boa.BorderStyle.BorderForeground(lipgloss.AdaptiveColor{Light: `#E3BD2D`, Dark: `#E3BD2D`})
+	styles := boa.DefaultStyles()
+	styles.Title.BorderForeground(lipgloss.AdaptiveColor{Light: `#E3BD2D`, Dark: `#E3BD2D`})
+	styles.Border.BorderForeground(lipgloss.AdaptiveColor{Light: `#E3BD2D`, Dark: `#E3BD2D`})
+	styles.SelectedItem.Foreground(lipgloss.AdaptiveColor{Light: `#353C3B`, Dark: `#353C3B`}).
+		Background(lipgloss.AdaptiveColor{Light: `#E3BD2D`, Dark: `#E3BD2D`})
+
+	b := boa.New(boa.WithStyles(styles))
+
+	rootCmd.SetUsageFunc(b.UsageFunc)
+	rootCmd.SetHelpFunc(b.HelpFunc)
 ```
 
-Use the documentation to see a full list of styles that can be set. 
+Use the documentation to see a full list of styles as well as other available options that can be set.
 
 ## Demo 
 
