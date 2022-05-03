@@ -27,7 +27,7 @@ func New(options ...Options) *Boa {
 
 func (b *Boa) HelpFunc(cmd *cobra.Command, s []string) {
 	model := newCmdModel(b.options, b.Styles, cmd)
-	if err := tea.NewProgram(model, b.options.atlScreen, b.options.mouseCellMotion).Start(); err != nil {
+	if err := tea.NewProgram(model, b.options.altScreen, b.options.mouseCellMotion).Start(); err != nil {
 		log.Fatal(err)
 	}
 	if model.print {
@@ -37,7 +37,7 @@ func (b *Boa) HelpFunc(cmd *cobra.Command, s []string) {
 
 func (b *Boa) UsageFunc(cmd *cobra.Command) error {
 	model := newCmdModel(b.options, b.Styles, cmd)
-	if err := tea.NewProgram(model, b.options.atlScreen, b.options.mouseCellMotion).Start(); err != nil {
+	if err := tea.NewProgram(model, b.options.altScreen, b.options.mouseCellMotion).Start(); err != nil {
 		return err
 	}
 	if model.print {

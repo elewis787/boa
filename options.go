@@ -4,7 +4,7 @@ import tea "github.com/charmbracelet/bubbletea"
 
 type options struct {
 	// public
-	atlScreen  tea.ProgramOption
+	altScreen  tea.ProgramOption
 	width      int
 	showBorder bool
 
@@ -43,16 +43,17 @@ func WithWidth(w int) Options {
 func WithAltScreen(b bool) Options {
 	return newFuncOption(func(opt *options) {
 		if !b {
-			opt.atlScreen = noOpt
+			opt.altScreen = noOpt
+			return
 		}
-		opt.atlScreen = tea.WithAltScreen()
+		opt.altScreen = tea.WithAltScreen()
 	})
 }
 
 func defaultOptions() *options {
 	return &options{
 		width:           defaultWidth,
-		atlScreen:       noOpt,
+		altScreen:       noOpt,
 		showBorder:      true,
 		mouseCellMotion: tea.WithMouseCellMotion(),
 	}
