@@ -65,6 +65,7 @@ Use the documentation to see a full list of styles as well as other available op
 ## Used by 
 - [rkl](https://github.com/elewis787/rkl)
 - [m8](https://github.com/kochavalabs/m8)
+- [botway](https://github.com/abdfnx/botway) 
 
 ## Future work 
 - Eval how styles are exported. Goal is to make it easy to customize the layout without needing to build a cmd parser for cobra 
