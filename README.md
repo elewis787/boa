@@ -68,7 +68,7 @@ Use the documentation to see a full list of styles as well as other available op
 - [botway](https://github.com/abdfnx/botway) 
 
 ## Future work 
-- Eval how styles are exported. Goal is to make it easy to customize the layout without needing to build a cmd parser for cobra 
+- ~Eval how styles are exported. Goal is to make it easy to customize the layout without needing to build a cmd parser for cobra~ 
 - ~Add back button~ 
 - Option to execute sub command 
 - ~Adjust help based on cmd context availability~ 
