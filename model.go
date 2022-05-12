@@ -135,54 +135,56 @@ func (m *cmdModel) usage() string {
 	usageText := strings.Builder{}
 
 	cmdTitle := ""
-	if !m.cmd.HasParent() {
-		rootCmdName := m.styles.Section.Render(m.cmd.Root().Name() + " " + m.cmd.Root().Version)
-		rootCmdLong := m.styles.SubTitle.Render(m.cmd.Root().Long)
-		cmdTitle = m.styles.Title.Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white}).
-			Render(lipgloss.JoinVertical(lipgloss.Top, rootCmdName, rootCmdLong))
+	cmdName := m.cmd.Name()
+	if m.cmd.Version != "" {
+		cmdName += " " + m.cmd.Version
 	}
+	cmdName = m.styles.Section.Render(cmdName)
+	cmdLong := m.styles.SubTitle.Render(m.cmd.Long)
+	cmdTitle = m.styles.Title.Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white}).
+		Render(lipgloss.JoinVertical(lipgloss.Center, cmdName, cmdLong))
 	usageText.WriteString(cmdTitle + "\n")
 
 	cmdSection := m.styles.Section.Render("Cmd Description:")
 	short := m.styles.Text.Render(m.cmd.Short)
 
-	usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, cmdSection, short) + "\n")
+	usageText.WriteString(lipgloss.JoinVertical(lipgloss.Left, cmdSection, short) + "\n")
 
 	if m.cmd.Runnable() {
 		usage := m.styles.Section.Render("Usage:")
 		useLine := m.styles.Text.Render(m.cmd.UseLine())
-		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, usage, useLine) + "\n")
+		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Left, usage, useLine) + "\n")
 		if m.cmd.HasAvailableSubCommands() {
 			commandPath := m.styles.Text.Render(m.cmd.CommandPath() + " [command]")
-			usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, commandPath) + "\n")
+			usageText.WriteString(lipgloss.JoinVertical(lipgloss.Left, commandPath) + "\n")
 		}
 	}
 
 	if len(m.cmd.Aliases) > 0 {
 		aliases := m.styles.Section.Render("Aliases:")
 		nameAndAlias := m.styles.Text.Render(m.cmd.NameAndAliases())
-		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, aliases, nameAndAlias) + "\n")
+		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Left, aliases, nameAndAlias) + "\n")
 	}
 
 	if m.cmd.HasAvailableLocalFlags() {
 		localFlags := m.styles.Section.Render("Flags:")
 		flagUsage := m.styles.Text.Render(strings.TrimRightFunc(m.cmd.LocalFlags().FlagUsages(), unicode.IsSpace))
-		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, localFlags, flagUsage) + "\n")
+		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Left, localFlags, flagUsage) + "\n")
 	}
 	if m.cmd.HasAvailableInheritedFlags() {
 		globalFlags := m.styles.Section.Render("Global Flags:")
 		flagUsage := m.styles.Text.Render(strings.TrimRightFunc(m.cmd.InheritedFlags().FlagUsages(), unicode.IsSpace))
-		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, globalFlags, flagUsage) + "\n")
+		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Left, globalFlags, flagUsage) + "\n")
 	}
 
 	if m.cmd.HasExample() {
 		examples := m.styles.Section.Render("Examples:")
 		example := m.styles.Text.Render(m.cmd.Example)
-		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, examples, example) + "\n")
+		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Left, examples, example) + "\n")
 	}
 
 	if m.cmd.HasAvailableSubCommands() {
-		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Top, m.list.View()))
+		usageText.WriteString(lipgloss.JoinVertical(lipgloss.Left, m.list.View()))
 	}
 
 	return m.styles.Border.Render(usageText.String() + "\n")
@@ -196,7 +198,7 @@ func (m *cmdModel) footer() string {
 	if m.contentHeight > m.windowHeight-2 {
 		scroll = m.styles.Info.Render("ctrl+k up • ctrl+j down • mouse to scroll")
 	}
-	return lipgloss.JoinVertical(lipgloss.Top, help, scroll)
+	return lipgloss.JoinVertical(lipgloss.Left, help, scroll)
 }
 
 // print outputs the command chain for a given cobra command.
