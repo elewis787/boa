@@ -1,6 +1,7 @@
 package boa
 
 import (
+	"bytes"
 	"strings"
 	"unicode"
 
@@ -30,6 +31,7 @@ type cmdModel struct {
 	windowHeight int
 	// Store full height of content for given view, updated on command change
 	contentHeight int
+	errorWriter   *bytes.Buffer
 }
 
 // newCmdModel initializes a based on values supplied from cmd *cobra.Command
@@ -39,11 +41,12 @@ func newCmdModel(options *options, cmd *cobra.Command) *cmdModel {
 	vp := viewport.New(0, 0)
 	vp.KeyMap = viewPortKeyMap()
 	m := &cmdModel{
-		styles:   options.styles,
-		cmd:      cmd,
-		subCmds:  subCmds,
-		list:     l,
-		viewport: &vp,
+		styles:      options.styles,
+		cmd:         cmd,
+		subCmds:     subCmds,
+		list:        l,
+		viewport:    &vp,
+		errorWriter: options.errorWriter,
 	}
 	m.contentHeight = lipgloss.Height(m.usage())
 	return m
@@ -133,6 +136,10 @@ func (m *cmdModel) View() string {
 // usage builds the usage body from a cobra command
 func (m *cmdModel) usage() string {
 	usageText := strings.Builder{}
+
+	if m.errorWriter != nil && m.errorWriter.Len() > 0 {
+		usageText.WriteString(m.styles.ErrorText.Render(m.errorWriter.String() + "\n"))
+	}
 
 	cmdTitle := ""
 	cmdName := m.cmd.Name()
