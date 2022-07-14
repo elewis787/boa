@@ -1,8 +1,12 @@
 package boa
 
 import (
+	"bytes"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+var ErrorWriter = &bytes.Buffer{}
 
 type options struct {
 	// public
@@ -10,6 +14,7 @@ type options struct {
 	styles    *Styles
 	// private (not capable of being set)
 	mouseCellMotion tea.ProgramOption
+	errorWriter     *bytes.Buffer
 }
 
 type Options interface {
@@ -46,11 +51,20 @@ func WithStyles(styles *Styles) Options {
 	})
 }
 
+func WithErrWriter(b *bytes.Buffer) Options {
+	return newFuncOption(func(opt *options) {
+		if b != nil {
+			opt.errorWriter = b
+		}
+	})
+}
+
 func defaultOptions() *options {
 	return &options{
 		altScreen:       noOpt,
 		styles:          DefaultStyles(),
 		mouseCellMotion: tea.WithMouseCellMotion(),
+		errorWriter:     ErrorWriter,
 	}
 }
 
