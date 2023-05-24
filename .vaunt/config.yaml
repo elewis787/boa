@@ -2,7 +2,7 @@ version: 0.0.1
 achievements:
   - achievement:
       name: Snake Charmer 
-      icon: https://raw.githubusercontent.com/elewis787/boa/main/.vaunt/boa.png
+      icon: https://raw.githubusercontent.com/elewis787/boa/develop/.vaunt/boa.png
       description: Charming snakes is no easy feat! 
       triggers:
         - trigger:
