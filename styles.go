@@ -13,6 +13,7 @@ const (
 	lightTeal = `#03DAC5`
 	darkTeal  = `#01A299`
 	white     = `#e5e5e5`
+	red       = `#FF3333`
 )
 
 type Styles struct {
@@ -21,6 +22,7 @@ type Styles struct {
 	SubTitle     lipgloss.Style
 	Section      lipgloss.Style
 	Text         lipgloss.Style
+	ErrorText    lipgloss.Style
 	SelectedItem lipgloss.Style
 	Item         lipgloss.Style
 	Info         lipgloss.Style
@@ -58,6 +60,9 @@ func DefaultStyles() *Styles {
 	// Style of the text output
 	s.Text = lipgloss.NewStyle().Bold(true).Padding(0, 0, 0, 5).Align(lipgloss.Left).
 		Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white})
+
+	s.ErrorText = lipgloss.NewStyle().Underline(true).Bold(true).Align(lipgloss.Center).Width(defaultWidth - 4).
+		Foreground(lipgloss.AdaptiveColor{Light: red, Dark: red})
 
 	// Style of the selection list items
 	s.SelectedItem = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.AdaptiveColor{Light: purple, Dark: purple}).

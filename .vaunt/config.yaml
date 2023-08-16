@@ -1,0 +1,22 @@
+version: 0.0.1
+achievements:
+  - achievement:
+      name: Snake Charmer 
+      icon: https://raw.githubusercontent.com/elewis787/boa/develop/.vaunt/boa.png
+      description: Charming snakes is no easy feat! 
+      triggers:
+        - trigger:
+            actor: author
+            action: star
+            condition: starred = true
+            operator: "&"
+        - trigger:
+            actor: author
+            action: issue
+            condition: labels in ['enhancement']
+            operator: "|"
+        - trigger: 
+            actor: reviewers
+            action: pull_request
+            condition: count() > 1
+            operator: '|'
