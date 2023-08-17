@@ -1,4 +1,5 @@
 # Boa
+[![Vaunt Community](https://api.vaunt.dev/v1/github/entities/elewis787/repositories/boa/badges/community)](https://community.vaunt.dev/board/elewis787/repository/boa)
 [![Go Reference](https://pkg.go.dev/badge/github.com/elewis787/boa#section-readme.svg)](https://pkg.go.dev/github.com/elewis787/boa#section-readme) [![Go Report Card](https://goreportcard.com/badge/github.com/elewis787/boa)](https://goreportcard.com/report/github.com/elewis787/boa)
 
 Boa implements [Cobra's](https://github.com/spf13/cobra) help and usage functions to provided an interactive user experience by leveraging [Bubbletea](https://github.com/charmbracelet/bubbletea). User's no longer need to spend time running multiple help commands to see how nested sub commands work!
