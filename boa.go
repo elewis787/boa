@@ -16,7 +16,9 @@ type Boa struct {
 func New(options ...Options) *Boa {
 	opts := defaultOptions()
 	for _, opt := range options {
-		opt.apply(opts)
+		if opt != nil {
+			opt.apply(opts)
+		}
 	}
 	return &Boa{
 		options: opts,
