@@ -43,11 +43,15 @@ func DefaultStyles() *Styles {
 	s.Title = lipgloss.NewStyle().Bold(true).
 		Border(lipgloss.DoubleBorder()).
 		BorderForeground(lipgloss.AdaptiveColor{Light: purple, Dark: purple}).
+		Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white}).
 		Width(defaultWidth - 4).
 		Align(lipgloss.Center)
 
 	// Style of the SubTitle
-	s.SubTitle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white}).Align(lipgloss.Center)
+	s.SubTitle = lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: white, Dark: white}).
+		Width(defaultWidth - 6).
+		Align(lipgloss.Center)
 
 	// Style of the individual help sections (Exaple, Usage, Flags etc.. )
 	s.Section = lipgloss.NewStyle().Bold(true).

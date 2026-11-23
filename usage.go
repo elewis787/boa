@@ -19,7 +19,7 @@ func HelpFunc(cmd *cobra.Command, s []string) {
 		log.Fatal(err)
 	}
 	if model.print {
-		fmt.Println(model.cmdChain)
+		fmt.Println(defaultOpts.styles.Border.Render(defaultOpts.styles.CmdPrint.Render(model.cmdChain)))
 	}
 }
 
@@ -31,7 +31,7 @@ func UsageFunc(cmd *cobra.Command) error {
 		return err
 	}
 	if model.print {
-		fmt.Println(model.cmdChain)
+		fmt.Println(defaultOpts.styles.Border.Render(defaultOpts.styles.CmdPrint.Render(model.cmdChain)))
 	}
 	return nil
 }

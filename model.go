@@ -36,6 +36,12 @@ type cmdModel struct {
 
 // newCmdModel initializes a based on values supplied from cmd *cobra.Command
 func newCmdModel(options *options, cmd *cobra.Command) *cmdModel {
+	if options == nil {
+		options = defaultOptions()
+	}
+	if options.styles == nil {
+		options.styles = DefaultStyles()
+	}
 	subCmds := getSubCommands(cmd)
 	l := newSubCmdsList(options.styles, subCmds)
 	vp := viewport.New(0, 0)
@@ -135,6 +141,10 @@ func (m *cmdModel) View() string {
 
 // usage builds the usage body from a cobra command
 func (m *cmdModel) usage() string {
+	if m == nil || m.cmd == nil {
+		return ""
+	}
+
 	usageText := strings.Builder{}
 
 	if m.errorWriter != nil && m.errorWriter.Len() > 0 {
@@ -147,9 +157,13 @@ func (m *cmdModel) usage() string {
 		cmdName += " " + m.cmd.Version
 	}
 	cmdName = m.styles.Section.Render(cmdName)
-	cmdLong := m.styles.SubTitle.Render(m.cmd.Long)
-	cmdTitle = m.styles.Title.Foreground(lipgloss.AdaptiveColor{Light: darkGrey, Dark: white}).
-		Render(lipgloss.JoinVertical(lipgloss.Center, cmdName, cmdLong))
+
+	subTitleStyle := m.styles.SubTitle
+	if subTitleStyle.GetWidth() == 0 && m.styles.Title.GetWidth() > 2 {
+		subTitleStyle = subTitleStyle.Width(m.styles.Title.GetWidth() - 2)
+	}
+	cmdLong := subTitleStyle.Render(m.cmd.Long)
+	cmdTitle = m.styles.Title.Render(lipgloss.JoinVertical(lipgloss.Center, cmdName, cmdLong))
 	usageText.WriteString(cmdTitle + "\n")
 
 	cmdSection := m.styles.Section.Render("Cmd Description:")
