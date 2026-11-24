@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -108,5 +109,80 @@ func TestDefaultStyles(t *testing.T) {
 	styles := DefaultStyles()
 	if styles == nil {
 		t.Fatal("expected non-nil default styles")
+	}
+	if styles.Title.GetForeground() == nil {
+		t.Error("expected default Title style to have a foreground set")
+	}
+	if styles.SubTitle.GetWidth() == 0 {
+		t.Error("expected default SubTitle style to have a non-zero width for centering")
+	}
+}
+
+func TestCustomStylesApplied(t *testing.T) {
+	styles := DefaultStyles()
+	customColor := lipgloss.Color("#ABCDEF")
+	styles.Title = styles.Title.Foreground(customColor)
+
+	cmd := &cobra.Command{Use: "customcmd", Short: "Short description", Long: "Long description"}
+	b := New(WithStyles(styles))
+
+	model := newCmdModel(b.options, cmd)
+	usageOut := model.usage()
+
+	if usageOut == "" {
+		t.Fatal("expected non-empty usage output")
+	}
+	if !strings.Contains(usageOut, "customcmd") {
+		t.Errorf("expected usage output to contain command name, got %q", usageOut)
+	}
+}
+
+func TestLongDescriptionSubtitleCentering(t *testing.T) {
+	cmd := &cobra.Command{
+		Use:   "longcmd",
+		Short: "Short description",
+		Long:  "This is an intentionally long command description that exceeds the typical terminal column width and spans across multiple lines to ensure that subtitle line wrapping and centering within the title box works seamlessly without causing layout distortion or off-center misalignment.",
+	}
+	model := newCmdModel(nil, cmd)
+	usageOut := model.usage()
+
+	if usageOut == "" {
+		t.Fatal("expected non-empty usage output")
+	}
+	if !strings.Contains(usageOut, "longcmd") {
+		t.Errorf("expected usage output to contain command name, got %q", usageOut)
+	}
+}
+
+func TestNilSafety(t *testing.T) {
+	// nil cobra command
+	subs := getSubCommands(nil)
+	if len(subs) != 0 {
+		t.Errorf("expected 0 subcommands for nil command, got %d", len(subs))
+	}
+
+	// nil styles in newSubCmdsList
+	listModel := newSubCmdsList(nil, nil)
+	if listModel.Title != "Available Sub Commands:" {
+		t.Errorf("expected default title, got %q", listModel.Title)
+	}
+
+	// nil options and nil command in newCmdModel
+	mNil := newCmdModel(nil, nil)
+	if mNil == nil {
+		t.Fatal("expected non-nil model")
+	}
+	if mNil.usage() != "" {
+		t.Errorf("expected empty usage for nil command, got %q", mNil.usage())
+	}
+
+	// nil options passed to newCmdModel
+	cmd := &cobra.Command{Use: "safe"}
+	m := newCmdModel(nil, cmd)
+	if m.cmd != cmd {
+		t.Errorf("expected model command to match")
+	}
+	if m.styles == nil {
+		t.Error("expected non-nil default styles in model")
 	}
 }

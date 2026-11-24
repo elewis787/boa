@@ -48,6 +48,9 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 // newSubCmdsList returns a new list.Model filled with the values in []list.Items
 func newSubCmdsList(styles *Styles, items []list.Item) list.Model {
+	if styles == nil {
+		styles = DefaultStyles()
+	}
 	l := list.New(items, itemDelegate{styles: styles}, 0, listHeight)
 	l.Styles.TitleBar.Padding(0, 0)
 	l.Styles.Title = styles.Section
@@ -62,7 +65,7 @@ func newSubCmdsList(styles *Styles, items []list.Item) list.Model {
 // This does not follow the command chain past a depth of 1.
 func getSubCommands(c *cobra.Command) []list.Item {
 	subs := make([]list.Item, 0)
-	if c.HasAvailableSubCommands() {
+	if c != nil && c.HasAvailableSubCommands() {
 		for _, subcmd := range c.Commands() {
 			if subcmd.Name() == "help" || subcmd.IsAvailableCommand() {
 				subs = append(subs, item{cmd: subcmd})

@@ -26,6 +26,9 @@ func New(options ...Options) *Boa {
 }
 
 func (b *Boa) HelpFunc(cmd *cobra.Command, s []string) {
+	if b == nil || b.options == nil {
+		b = New()
+	}
 	model := newCmdModel(b.options, cmd)
 	if err := tea.NewProgram(model, b.options.altScreen, b.options.mouseCellMotion).Start(); err != nil {
 		log.Fatal(err)
@@ -36,6 +39,9 @@ func (b *Boa) HelpFunc(cmd *cobra.Command, s []string) {
 }
 
 func (b *Boa) UsageFunc(cmd *cobra.Command) error {
+	if b == nil || b.options == nil {
+		b = New()
+	}
 	model := newCmdModel(b.options, cmd)
 	if err := tea.NewProgram(model, b.options.altScreen, b.options.mouseCellMotion).Start(); err != nil {
 		return err
