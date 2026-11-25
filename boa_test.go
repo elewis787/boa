@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/spf13/cobra"
 )
 
@@ -184,5 +186,107 @@ func TestNilSafety(t *testing.T) {
 	}
 	if m.styles == nil {
 		t.Error("expected non-nil default styles in model")
+	}
+}
+
+func isBorderRune(r rune) bool {
+	switch r {
+	case '┃', '┏', '┓', '┗', '┛', '─', '│', '┌', '┐', '└', '┘', '║', '╔', '╗', '╚', '╝':
+		return true
+	}
+	return false
+}
+
+// borderColumns returns the display column of the rightmost border rune on each
+// line of a rendered block. On a correctly rendered box every value is equal.
+func borderColumns(t *testing.T, out string) []int {
+	t.Helper()
+	var cols []int
+	for _, line := range strings.Split(out, "\n") {
+		trimmed := strings.TrimRight(line, " ")
+		if trimmed == "" {
+			continue
+		}
+		runes := []rune(ansi.Strip(trimmed))
+		if len(runes) == 0 || !isBorderRune(runes[len(runes)-1]) {
+			continue
+		}
+		cols = append(cols, lipgloss.Width(trimmed))
+	}
+	return cols
+}
+
+func assertRectangular(t *testing.T, out string) {
+	t.Helper()
+	cols := borderColumns(t, out)
+	if len(cols) == 0 {
+		t.Fatal("expected bordered output")
+	}
+	for i, c := range cols {
+		if c != cols[0] {
+			t.Fatalf("line %d right border at column %d, expected %d: output is not a rectangle", i, c, cols[0])
+		}
+	}
+}
+
+func TestUsageBorderRectangular(t *testing.T) {
+	root := &cobra.Command{Use: "dataBrain", Short: "dataBrain short", Long: "dataBrain long description", Version: "v0.1.0", Run: func(cmd *cobra.Command, args []string) {}}
+	sub := &cobra.Command{Use: "install-docker", Short: "install docker components", Run: func(cmd *cobra.Command, args []string) {}}
+	root.AddCommand(sub)
+
+	m := newCmdModel(nil, root)
+	assertRectangular(t, m.usage())
+}
+
+func TestUsageBorderRectangularAfterResize(t *testing.T) {
+	root := &cobra.Command{Use: "dataBrain", Short: "dataBrain short", Version: "v0.1.0", Run: func(cmd *cobra.Command, args []string) {}}
+	sub := &cobra.Command{Use: "install-docker", Short: "install docker components", Run: func(cmd *cobra.Command, args []string) {}}
+	root.AddCommand(sub)
+
+	for _, w := range []int{120, 190} {
+		m := newCmdModel(nil, root)
+		nm, _ := m.Update(tea.WindowSizeMsg{Width: w, Height: 40})
+		m = nm.(*cmdModel)
+		assertRectangular(t, m.View())
+	}
+}
+
+func TestUsageBorderRectangularCJK(t *testing.T) {
+	root := &cobra.Command{Use: "dataBrain", Short: "dataBrain short", Long: "数据描述", Run: func(cmd *cobra.Command, args []string) {}}
+	sub := &cobra.Command{Use: "install-docker", Short: "安装docker组件", Run: func(cmd *cobra.Command, args []string) {}}
+	root.AddCommand(sub)
+
+	m := newCmdModel(nil, root)
+	nm, _ := m.Update(tea.WindowSizeMsg{Width: 190, Height: 40})
+	m = nm.(*cmdModel)
+	assertRectangular(t, m.View())
+}
+
+func TestItemDelegateUsesCellWidthForNamePadding(t *testing.T) {
+	styles := DefaultStyles()
+	root := &cobra.Command{Use: "root"}
+	cjk := &cobra.Command{Use: "工具", Short: "desc", Run: func(cmd *cobra.Command, args []string) {}}
+	ascii := &cobra.Command{Use: "abcdefghijk", Short: "desc", Run: func(cmd *cobra.Command, args []string) {}}
+	root.AddCommand(cjk, ascii)
+
+	items := getSubCommands(root)
+	l := newSubCmdsList(styles, items)
+	d := itemDelegate{styles: styles}
+
+	colOf := func(it item) int {
+		var sb strings.Builder
+		d.Render(&sb, l, 1, it)
+		line := ansi.Strip(sb.String())
+		idx := strings.Index(line, "desc")
+		if idx < 0 {
+			t.Fatalf("expected short text in rendered item, got %q", line)
+		}
+		return lipgloss.Width(line[:idx])
+	}
+
+	cjkCol := colOf(item{cmd: cjk})
+	asciiCol := colOf(item{cmd: ascii})
+	if cjkCol != asciiCol {
+		t.Fatalf("short column misaligned: CJK name at cell %d, ASCII name at cell %d", cjkCol, asciiCol)
 	}
 }
