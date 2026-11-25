@@ -137,6 +137,39 @@ func TestCustomStylesApplied(t *testing.T) {
 	}
 }
 
+func TestSubCommandListAppliesCustomTitleStyle(t *testing.T) {
+	styles := DefaultStyles()
+	styles.Section = styles.Section.Transform(strings.ToUpper)
+
+	rootCmd := &cobra.Command{Use: "root"}
+	subCmd := &cobra.Command{Use: "sub", Short: "Subcommand description", Run: func(cmd *cobra.Command, args []string) {}}
+	rootCmd.AddCommand(subCmd)
+
+	listModel := newSubCmdsList(styles, getSubCommands(rootCmd))
+	view := listModel.View()
+	if !strings.Contains(view, "AVAILABLE SUB COMMANDS:") {
+		t.Errorf("expected custom section style to transform the subcommand list title, got %q", view)
+	}
+}
+
+func TestSubCommandListWidthFollowsBorderStyle(t *testing.T) {
+	styles := DefaultStyles()
+	styles.Border = styles.Border.Width(60).Padding(0, 3, 0, 4)
+
+	listModel := newSubCmdsList(styles, nil)
+	if listModel.Width() != 53 {
+		t.Errorf("expected subcommand list width to fit inside the custom border, got %d", listModel.Width())
+	}
+}
+
+func TestSubCommandListTitleBarHasNoPadding(t *testing.T) {
+	listModel := newSubCmdsList(nil, nil)
+	top, right, bottom, left := listModel.Styles.TitleBar.GetPadding()
+	if top != 0 || right != 0 || bottom != 0 || left != 0 {
+		t.Errorf("expected subcommand list title bar padding to be removed, got top=%d right=%d bottom=%d left=%d", top, right, bottom, left)
+	}
+}
+
 func TestLongDescriptionSubtitleCentering(t *testing.T) {
 	cmd := &cobra.Command{
 		Use:   "longcmd",

@@ -51,8 +51,18 @@ func newSubCmdsList(styles *Styles, items []list.Item) list.Model {
 	if styles == nil {
 		styles = DefaultStyles()
 	}
-	l := list.New(items, itemDelegate{styles: styles}, 0, listHeight)
-	l.Styles.TitleBar.Padding(0, 0)
+	borderWidth := styles.Border.GetWidth()
+	if borderWidth == 0 {
+		borderWidth = defaultWidth
+	}
+	_, borderPaddingRight, _, borderPaddingLeft := styles.Border.GetPadding()
+	listWidth := borderWidth - borderPaddingRight - borderPaddingLeft
+	if listWidth < 1 {
+		listWidth = 1
+	}
+
+	l := list.New(items, itemDelegate{styles: styles}, listWidth, listHeight)
+	l.Styles.TitleBar = l.Styles.TitleBar.Padding(0, 0)
 	l.Styles.Title = styles.Section
 	l.Title = "Available Sub Commands:"
 	l.SetShowHelp(false)
