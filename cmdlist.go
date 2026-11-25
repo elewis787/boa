@@ -35,7 +35,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 	str := i.cmd.Name() + lipgloss.NewStyle().Bold(true).
-		PaddingLeft(i.cmd.NamePadding()-len(i.cmd.Name())+1).Render(i.cmd.Short)
+		PaddingLeft(i.cmd.NamePadding()-lipgloss.Width(i.cmd.Name())+1).Render(i.cmd.Short)
 
 	fn := d.styles.Item.Render
 	if index == m.Index() {
