@@ -20,14 +20,16 @@ const (
 // cmdModel Implements tea.Model. It provides an interactive
 // help and usage tui component for bubbletea programs.
 type cmdModel struct {
-	styles   *Styles
-	list     list.Model
-	viewport *viewport.Model
-	cmd      *cobra.Command
-	subCmds  []list.Item
-	print    bool
-	cmdChain string
-	// Store window height to adjust viewport on command selection changes
+	baseStyles *Styles
+	styles     *Styles
+	list       list.Model
+	viewport   *viewport.Model
+	cmd        *cobra.Command
+	subCmds    []list.Item
+	print      bool
+	cmdChain   string
+	// Store window dimensions to adjust viewport and responsive styles
+	windowWidth  int
 	windowHeight int
 	// Store full height of content for given view, updated on command change
 	contentHeight int
@@ -47,6 +49,7 @@ func newCmdModel(options *options, cmd *cobra.Command) *cmdModel {
 	vp := viewport.New(0, 0)
 	vp.KeyMap = viewPortKeyMap()
 	m := &cmdModel{
+		baseStyles:  options.styles,
 		styles:      options.styles,
 		cmd:         cmd,
 		subCmds:     subCmds,
@@ -71,8 +74,14 @@ func (m *cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.windowHeight = msg.Height
+		m.windowWidth = msg.Width
+		m.styles = fitStylesToWidth(m.baseStyles, msg.Width)
+		if borderW := m.styles.Border.GetWidth(); borderW > 2 {
+			m.list.SetWidth(borderW - 2)
+		}
+		m.contentHeight = lipgloss.Height(m.usage())
 		m.viewport.Width = msg.Width
-		m.viewport.Height = m.windowHeight - lipgloss.Height(m.footer())
+		m.viewport.Height = max(0, m.windowHeight-lipgloss.Height(m.footer()))
 		if m.viewport.Height > m.contentHeight {
 			m.viewport.Height = m.contentHeight
 		}
@@ -87,31 +96,13 @@ func (m *cmdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			i, ok := m.list.SelectedItem().(item)
 			if ok {
 				m.cmd = i.cmd
-				subCmds := getSubCommands(m.cmd)
-				m.list = newSubCmdsList(m.styles, subCmds)
-				m.viewport.Height = m.windowHeight - lipgloss.Height(m.footer())
-				// Update new content height and check viewport size
-				m.contentHeight = lipgloss.Height(m.usage())
-				if m.viewport.Height > m.contentHeight {
-					m.viewport.Height = m.contentHeight
-				}
-				// Scroll viewport back to top for new screen
-				m.viewport.SetYOffset(0)
+				m.refreshLayout(getSubCommands(m.cmd))
 			}
 			return m, nil
 		case "b":
 			if m.cmd.HasParent() {
 				m.cmd = m.cmd.Parent()
-				subCmds := getSubCommands(m.cmd)
-				m.list = newSubCmdsList(m.styles, subCmds)
-				m.viewport.Height = m.windowHeight - lipgloss.Height(m.footer())
-				// Update new content height and check viewport size
-				m.contentHeight = lipgloss.Height(m.usage())
-				if m.viewport.Height > m.contentHeight {
-					m.viewport.Height = m.contentHeight
-				}
-				// Scroll viewport back to top for new screen
-				m.viewport.SetYOffset(0)
+				m.refreshLayout(getSubCommands(m.cmd))
 			}
 			return m, nil
 		case "p":
@@ -257,4 +248,55 @@ func viewPortKeyMap() viewport.KeyMap {
 			key.WithKeys("ctrl+j"),
 		),
 	}
+}
+
+func (m *cmdModel) refreshLayout(subCmds []list.Item) {
+	m.list = newSubCmdsList(m.styles, subCmds)
+	if m.windowWidth > 0 {
+		if borderW := m.styles.Border.GetWidth(); borderW > 2 {
+			m.list.SetWidth(borderW - 2)
+		}
+	}
+	m.contentHeight = lipgloss.Height(m.usage())
+	m.viewport.Height = max(0, m.windowHeight-lipgloss.Height(m.footer()))
+	if m.viewport.Height > m.contentHeight {
+		m.viewport.Height = m.contentHeight
+	}
+	m.viewport.SetYOffset(0)
+}
+
+func fitStylesToWidth(base *Styles, windowWidth int) *Styles {
+	if base == nil {
+		base = DefaultStyles()
+	}
+	if windowWidth <= 0 {
+		return base
+	}
+
+	baseBorderWidth := base.Border.GetWidth()
+	if baseBorderWidth <= 0 {
+		baseBorderWidth = defaultWidth
+	}
+
+	maxInner := windowWidth - 2
+	if maxInner >= baseBorderWidth && (base.Info.GetWidth() <= 0 || base.Info.GetWidth() <= windowWidth) {
+		return base
+	}
+
+	targetWidth := min(baseBorderWidth, maxInner)
+	if targetWidth < 10 {
+		targetWidth = 10
+	}
+
+	// Copy struct so base (options.styles) is never mutated
+	s := *base
+	s.Border = base.Border.Width(targetWidth)
+	s.Title = base.Title.Width(max(1, targetWidth-4))
+	s.SubTitle = base.SubTitle.Width(max(1, targetWidth-6))
+	s.ErrorText = base.ErrorText.Width(max(1, targetWidth-4))
+	s.CmdPrint = base.CmdPrint.Width(targetWidth)
+	if infoW := base.Info.GetWidth(); infoW == 0 || infoW > windowWidth {
+		s.Info = base.Info.Width(windowWidth)
+	}
+	return &s
 }
