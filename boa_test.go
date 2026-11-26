@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
@@ -184,5 +185,59 @@ func TestNilSafety(t *testing.T) {
 	}
 	if m.styles == nil {
 		t.Error("expected non-nil default styles in model")
+	}
+}
+
+func TestResponsiveWidthResize(t *testing.T) {
+	cmd := &cobra.Command{
+		Use:   "narrow",
+		Short: "Short description",
+		Long:  "This is a long description that should wrap cleanly inside an 80-column terminal without breaking the borders.",
+	}
+	b := New()
+	m := newCmdModel(b.options, cmd)
+
+	// Simulate an 80-column terminal (e.g. standard Windows cmd/cmder)
+	m.Update(tea.WindowSizeMsg{Width: 80, Height: 40})
+
+	usageWidth := lipgloss.Width(m.usage())
+	if usageWidth > 80 {
+		t.Errorf("expected usage width <= 80 on 80-col terminal, got %d", usageWidth)
+	}
+	footerWidth := lipgloss.Width(m.footer())
+	if footerWidth > 80 {
+		t.Errorf("expected footer width <= 80 on 80-col terminal, got %d", footerWidth)
+	}
+
+	// Ensure shared options.styles was NOT mutated
+	if b.options.styles.Border.GetWidth() != defaultWidth {
+		t.Errorf("expected base options Border width to remain %d, got %d", defaultWidth, b.options.styles.Border.GetWidth())
+	}
+
+	// Simulate maximizing terminal back to 120 columns
+	m.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
+	if m.styles.Border.GetWidth() != defaultWidth {
+		t.Errorf("expected Border width to restore to %d on wide terminal, got %d", defaultWidth, m.styles.Border.GetWidth())
+	}
+}
+
+func TestRefreshLayoutOnNavigate(t *testing.T) {
+	root := &cobra.Command{Use: "root", Short: "Root"}
+	sub := &cobra.Command{Use: "sub", Short: "Sub", Run: func(cmd *cobra.Command, args []string) {}}
+	root.AddCommand(sub)
+
+	m := newCmdModel(nil, root)
+	m.Update(tea.WindowSizeMsg{Width: 80, Height: 30})
+
+	// Navigate down into subcommand
+	m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if m.cmd != sub {
+		t.Errorf("expected current command to be sub, got %q", m.cmd.Use)
+	}
+
+	// Navigate back to root
+	m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	if m.cmd != root {
+		t.Errorf("expected current command to be root, got %q", m.cmd.Use)
 	}
 }
